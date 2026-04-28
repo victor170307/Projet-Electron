@@ -15,7 +15,13 @@ async function register(username, password) {
 
   const token = generateToken({ id: userId, username });
 
-  return { userId, token };
+  return {
+  user: {
+    id: user.id,
+    username: user.username
+  },
+  token
+};
 }
 
 async function login(username, password) {

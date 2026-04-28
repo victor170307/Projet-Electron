@@ -12,16 +12,17 @@ const db = new sqlite3.Database('./database.sqlite', (err) => {
 // Création des tables
 db.serialize(() => {
 
-  // Table utilisateurs
+  // 👤 Table utilisateurs (avec rôle)
   db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE,
-      password TEXT
+      password TEXT,
+      role TEXT DEFAULT 'user'
     )
   `);
 
-  // Table labyrinthes
+  // 🧩 Table labyrinthes
   db.run(`
     CREATE TABLE IF NOT EXISTS labyrinths (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,15 +37,15 @@ db.serialize(() => {
 
 
 // ====================
-// FONCTIONS UTILES
+// 👤 USERS
 // ====================
 
 // ➤ Ajouter un utilisateur
-function createUser(username, password) {
+function createUser(username, password, role = "user") {
   return new Promise((resolve, reject) => {
     db.run(
-      "INSERT INTO users (username, password) VALUES (?, ?)",
-      [username, password],
+      "INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
+      [username, password, role],
       function (err) {
         if (err) reject(err);
         else resolve(this.lastID);
@@ -66,6 +67,53 @@ function getUser(username) {
     );
   });
 }
+
+// ➤ Trouver un utilisateur par ID
+function getUserById(id) {
+  return new Promise((resolve, reject) => {
+    db.get(
+      "SELECT id, username, role FROM users WHERE id = ?",
+      [id],
+      (err, row) => {
+        if (err) reject(err);
+        else resolve(row);
+      }
+    );
+  });
+}
+
+// ➤ Récupérer tous les utilisateurs (ADMIN)
+function getAllUsers() {
+  return new Promise((resolve, reject) => {
+    db.all(
+      "SELECT id, username, role FROM users",
+      [],
+      (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      }
+    );
+  });
+}
+
+// ➤ Supprimer un utilisateur
+function deleteUser(id) {
+  return new Promise((resolve, reject) => {
+    db.run(
+      "DELETE FROM users WHERE id = ?",
+      [id],
+      function (err) {
+        if (err) reject(err);
+        else resolve(true);
+      }
+    );
+  });
+}
+
+
+// ====================
+// 🧩 LABYRINTHES
+// ====================
 
 // ➤ Ajouter un labyrinthe
 function createLabyrinth(user_id, data) {
@@ -95,10 +143,81 @@ function getLabyrinths(user_id) {
   });
 }
 
+// ➤ Récupérer tous les labyrinthes (ADMIN)
+function getAllLabyrinths() {
+  return new Promise((resolve, reject) => {
+    db.all(
+      "SELECT * FROM labyrinths",
+      [],
+      (err, rows) => {
+        if (err) reject(err);
+        else resolve(rows);
+      }
+    );
+  });
+}
+
+// ➤ Supprimer un labyrinthe
+function deleteLabyrinth(id) {
+  return new Promise((resolve, reject) => {
+    db.run(
+      "DELETE FROM labyrinths WHERE id = ?",
+      [id],
+      function (err) {
+        if (err) reject(err);
+        else resolve(true);
+      }
+    );
+  });
+}
+
+
+// ====================
+// 📊 STATS (ADMIN)
+// ====================
+
+// ➤ Nombre total d’utilisateurs
+function countUsers() {
+  return new Promise((resolve, reject) => {
+    db.get("SELECT COUNT(*) as count FROM users", [], (err, row) => {
+      if (err) reject(err);
+      else resolve(row.count);
+    });
+  });
+}
+
+// ➤ Nombre total de labyrinthes
+function countLabyrinths() {
+  return new Promise((resolve, reject) => {
+    db.get("SELECT COUNT(*) as count FROM labyrinths", [], (err, row) => {
+      if (err) reject(err);
+      else resolve(row.count);
+    });
+  });
+}
+
+
+// ====================
+// EXPORTS
+// ====================
+
 module.exports = {
   db,
+
+  // users
   createUser,
   getUser,
+  getUserById,
+  getAllUsers,
+  deleteUser,
+
+  // labyrinths
   createLabyrinth,
-  getLabyrinths
+  getLabyrinths,
+  getAllLabyrinths,
+  deleteLabyrinth,
+
+  // stats
+  countUsers,
+  countLabyrinths
 };
