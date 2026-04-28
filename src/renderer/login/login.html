@@ -1,21 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
-  <title>Login</title>
-  <link rel="stylesheet" href="login.css">
+    <meta charset="UTF-8">
+    <title>Connexion - Labyrinthe Project</title>
+    <link rel="stylesheet" href="login.css">
 </head>
 <body>
+    <div class="login-container">
+        <h1>Bienvenue</h1>
+        <div class="form-group">
+            <label>Nom d'utilisateur</label>
+            <input type="text" id="username" placeholder="Entrez votre pseudo">
+        </div>
+        <div class="form-group">
+            <label>Mot de passe</label>
+            <input type="password" id="password" placeholder="••••••••">
+        </div>
+        
+        <div class="actions">
+            <button type="button" onclick="handleLogin()">Connexion</button>
+            <button type="button" class="btn-alt" onclick="handleRegister()">S'inscrire</button>
+        </div>
 
-  <h1>Connexion</h1>
+        <p id="result"></p>
+    </div>
 
-  <input id="username" placeholder="Username">
-  <input id="password" type="password" placeholder="Password">
-
-  <button onclick="login()">Login</button>
-  <button onclick="register()">Register</button>
-
-  <p id="result"></p>
-
-  <script src="login.js"></script>
+    <script src="login.js"></script>
 </body>
 </html>
