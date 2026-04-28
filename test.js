@@ -7,12 +7,14 @@ async function test() {
     console.log(reg);
 
     console.log("---- LOGIN ----");
-    const log = await login("testuser1", "1234");
+    const log = await login("testuser", "1234");
     console.log(log);
 
   } catch (err) {
     console.error(err.message);
   }
 }
-
+await register("alice", "1234");
+await register("bob", "1234");
+await register("admin", "1234");
 test();
