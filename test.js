@@ -1,20 +1,15 @@
-const { register, login } = require('./src/backend/auth');
+const sqlite3 = require('sqlite3').verbose();
+const db = new sqlite3.Database('./database.sqlite');
 
-async function test() {
-  try {
-    console.log("---- REGISTER ----");
-    const reg = await register("testuser", "1234");
-    console.log(reg);
-
-    console.log("---- LOGIN ----");
-    const log = await login("testuser", "1234");
-    console.log(log);
-
-  } catch (err) {
-    console.error(err.message);
+db.all("SELECT username FROM users", [], (err, rows) => {
+  if (err) {
+    console.error("Erreur :", err.message);
+    return;
   }
-}
-await register("alice", "1234");
-await register("bob", "1234");
-await register("admin", "1234");
-test();
+  console.log("Liste des utilisateurs inscrits :");
+  rows.forEach((row) => {
+    console.log("- " + row.username);
+  });
+});
+
+db.close();

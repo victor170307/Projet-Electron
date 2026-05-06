@@ -46,17 +46,32 @@ async function handleRegister() {
     console.log("Tentative d'inscription pour:", username);
 
     if (!username || !password) {
+        resultElement.style.color = "red";
         resultElement.innerText = "⚠️ Remplissez les champs pour vous inscrire.";
         return;
     }
 
-    const res = await window.api.register({ username, password });
-    
-    if (res.success) {
-        resultElement.style.color = "green";
-        resultElement.innerText = "✅ Compte créé ! Vous pouvez vous connecter.";
-    } else {
+    try {
+        const res = await window.api.register({ username, password });
+        console.log("Réponse inscription :", res);
+
+        if (res.success) {
+            resultElement.style.color = "green";
+            resultElement.innerText = "✅ Compte créé avec succès ! Redirection...";
+
+            localStorage.setItem("user", JSON.stringify(res.data.user));
+            localStorage.setItem("token", res.data.token);
+
+            setTimeout(() => {
+                window.location.href = "../dashboard/dashboard.html";
+            }, 800);
+        } else {
+            resultElement.style.color = "red";
+            resultElement.innerText = "❌ " + res.error;
+        }
+    } catch (err) {
+        console.error("Erreur d'appel API inscription:", err);
         resultElement.style.color = "red";
-        resultElement.innerText = "❌ " + res.error;
+        resultElement.innerText = "❌ Erreur de communication avec le serveur.";
     }
 }

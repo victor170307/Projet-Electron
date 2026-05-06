@@ -1,121 +1,79 @@
-// Variables globales pour le labyrinthe
-let currentMaze = null;
-const canvas = document.getElementById('mazeCanvas');
-const ctx = canvas ? canvas.getContext('2d') : null;
+function renderLabyrinths(labyrinths) {
+  const list = document.getElementById('labyrinthList');
+  list.innerHTML = '';
 
-window.onload = async () => {
-    // 🔐 1. Récupération de la session
-    const user = JSON.parse(localStorage.getItem("user"));
-    const token = localStorage.getItem("token");
+  if (!labyrinths || labyrinths.length === 0) {
+    list.innerHTML = '<p>Aucun labyrinthe pour le moment.</p>';
+    return;
+  }
 
-    // Si pas de session, retour au login
-    if (!user || !token) {
-        window.location.href = "../login/login.html";
-        return;
-    }
+  labyrinths.forEach((lab) => {
+    const item = document.createElement('div');
+    item.className = 'labyrinth-item';
+    item.innerHTML = `
+      <div><strong>ID:</strong> ${lab.id}</div>
+      <div><strong>Créé le :</strong> ${lab.created_at}</div>
+      <button class="btn-small" data-id="${lab.id}">Supprimer</button>
+    `;
 
-    // 👤 2. Affichage des infos user
-    const userInfo = document.getElementById("userInfo");
-    if (userInfo) {
-        userInfo.innerHTML = `
-            <h3>👤 ${user.username}</h3>
-            <p>Role: <span class="badge">${user.role || "user"}</span></p>
-        `;
-    }
+    const button = item.querySelector('button');
+    button.addEventListener('click', async () => {
+      await window.api.deleteLabyrinth(lab.id);
+      loadLabyrinths();
+    });
 
-    // 🧩 3. Charger la liste des labyrinthes
-    loadLabyrinths();
-};
+    list.appendChild(item);
+  });
+}
 
-// =====================
-// 🧩 CHARGEMENT & LISTE
-// =====================
 async function loadLabyrinths() {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const res = await window.api.getLabyrinths(user.id);
-    const container = document.getElementById("labyrinthList");
+  const user = getStoredUser();
+  if (!user) return;
 
-    if (!container) return;
-
-    if (!res || res.length === 0) {
-        container.innerHTML = "<p class='empty'>Aucun labyrinthe enregistré.</p>";
-        return;
-    }
-
-    container.innerHTML = "";
-    res.forEach(lab => {
-        const div = document.createElement("div");
-        div.className = "lab-item";
-        div.innerHTML = `
-            <span>🧩 # ${lab.id} (Diff: ${lab.difficulty || '?'})</span>
-            <div class="actions">
-                <button class="btn-view" onclick="viewMaze(${lab.id})">👁️</button>
-                <button class="btn-delete" onclick="deleteLab(${lab.id})">❌</button>
-            </div>
-        `;
-        container.appendChild(div);
-    });
+  const labs = await window.api.getLabyrinths(user.id);
+  renderLabyrinths(labs);
 }
 
-// =====================
-// 🎨 DESSIN DU LABYRINTHE
-// =====================
-function drawMaze(mazeData) {
-    if (!ctx) return;
-    
-    const grid = typeof mazeData === 'string' ? JSON.parse(mazeData) : mazeData;
-    const size = grid.length;
-    const cellSize = Math.floor(500 / size); // Adapte la taille au canvas de 500px
+function getStoredUser() {
+  const userData = localStorage.getItem('user');
+  if (!userData) {
+    window.location.href = '../login/login.html';
+    return null;
+  }
 
-    canvas.width = size * cellSize;
-    canvas.height = size * cellSize;
-
-    grid.forEach((row, y) => {
-        row.forEach((cell, x) => {
-            // 1 = Mur (Bleu foncé), 0 = Chemin (Blanc/Bleu clair)
-            ctx.fillStyle = cell === 1 ? "#1e293b" : "#f8fafc";
-            ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-        });
-    });
-    
-    document.getElementById('solveBtn').disabled = false;
-}
-
-// =====================
-// ➕ GÉNÉRATION (À compléter avec l'algo)
-// =====================
-async function generateAndSave() {
-    const user = JSON.parse(localStorage.getItem("user"));
-    const sizeInput = document.getElementById('mazeSize')?.value || 15;
-    const difficulty = document.getElementById('mazeDiff')?.value || 5;
-
-    // Simulation d'une grille pour l'instant (on ajoutera le vrai algo après)
-    const size = parseInt(sizeInput);
-    const dummyGrid = Array(size).fill().map(() => Array(size).fill(0));
-
-    const res = await window.api.createLabyrinth(user.id, {
-        grid: dummyGrid,
-        size: size,
-        difficulty: difficulty
-    });
-
-    if(res) {
-        drawMaze(dummyGrid);
-        loadLabyrinths();
-    }
-}
-
-// =====================
-// ❌ ACTIONS
-// =====================
-async function deleteLab(id) {
-    if(confirm("Supprimer ce labyrinthe ?")) {
-        await window.api.deleteLabyrinth(id);
-        loadLabyrinths();
-    }
+  return JSON.parse(userData);
 }
 
 function logout() {
-    localStorage.clear();
-    window.location.href = "../login/login.html";
+  localStorage.removeItem('user');
+  localStorage.removeItem('token');
+  window.location.href = '../login/login.html';
 }
+
+async function createLabyrinth() {
+  const user = getStoredUser();
+  if (!user) return;
+
+  const name = prompt('Nom du labyrinthe à créer ?');
+  if (!name) return;
+
+  const data = { name, createdBy: user.username };
+  const res = await window.api.createLabyrinth(user.id, data);
+  if (res.success) {
+    loadLabyrinths();
+  } else {
+    alert('Impossible de créer le labyrinthe.');
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const user = getStoredUser();
+  if (!user) return;
+
+  document.getElementById('userInfo').innerHTML = `
+    <p>Connecté en tant que <strong>${user.username}</strong></p>
+    <p>ID utilisateur : ${user.id}</p>
+  `;
+
+  loadLabyrinths();
+});

@@ -2,29 +2,36 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion - Labyrinthe Project</title>
+    <!-- Le chemin est relatif au dossier renderer/login/ -->
     <link rel="stylesheet" href="login.css">
 </head>
 <body>
     <div class="login-container">
         <h1>Bienvenue</h1>
+        
         <div class="form-group">
-            <label>Nom d'utilisateur</label>
-            <input type="text" id="username" placeholder="Entrez votre pseudo">
+            <label for="username">Nom d'utilisateur</label>
+            <input type="text" id="username" placeholder="Entrez votre pseudo" required>
         </div>
+        
         <div class="form-group">
-            <label>Mot de passe</label>
-            <input type="password" id="password" placeholder="••••••••">
+            <label for="password">Mot de passe</label>
+            <input type="password" id="password" placeholder="••••••••" required>
         </div>
         
         <div class="actions">
-            <button type="button" onclick="handleLogin()">Connexion</button>
-            <button type="button" class="btn-alt" onclick="handleRegister()">S'inscrire</button>
+            <!-- On garde type="button" pour éviter le rechargement de page par défaut du navigateur -->
+            <button type="button" id="btnLogin" onclick="handleLogin()">Connexion</button>
+            <button type="button" onclick="handleRegister()">S'inscrire</button>
         </div>
 
-        <p id="result"></p>
+        <!-- Zone pour afficher les messages d'erreur ou de succès -->
+        <p id="result" style="margin-top: 15px; min-height: 1.2em; font-weight: bold;"></p>
     </div>
 
+    <!-- Ton script JS chargé à la fin -->
     <script src="login.js"></script>
 </body>
 </html>

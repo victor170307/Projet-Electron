@@ -46,13 +46,17 @@ ipcMain.handle('login', async (event, { username, password }) => {
   console.log("Main: Tentative de connexion pour", username);
   try {
     const result = await login(username, password);
+    
+    // 🚀 AJOUT : Si c'est un succès, on change de page
+    const win = BrowserWindow.fromWebContents(event.sender);
+    win.loadFile(path.join(__dirname, '../renderer/dashboard/dashboard.html'));
+    
     return { success: true, data: result };
   } catch (err) {
     console.error("Main Error Login:", err.message);
     return { success: false, error: err.message };
   }
 });
-
 ipcMain.handle('register', async (event, { username, password }) => {
   console.log("Main: Tentative d'inscription pour", username);
   try {
@@ -80,7 +84,7 @@ ipcMain.handle('getLabyrinths', async (event, userId) => {
 ipcMain.handle('createLabyrinth', async (event, userId, data) => {
   try {
     const id = await db.createLabyrinth(userId, data);
-    return { success: true, id };
+      return { success: true, id };
   } catch (err) {
     return { success: false, error: err.message };
   }
